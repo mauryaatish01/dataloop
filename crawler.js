@@ -1,6 +1,7 @@
 const cheerio = require("cheerio");
 const axios = require("axios");
 const fs = require("fs");
+const utils = require("./utils");
 
 const args = process.argv.slice(2);
 
@@ -8,12 +9,20 @@ const urlStr = args[0];
 const depth = parseInt(args[1]) || 0;
 
 const getUrlsToVisit = async () => {
+  if (!utils.isValidURL(urlStr)) {
+    throw new Error("Enter valid URL.");
+  }
+
+  if (depth < 0) {
+    throw new Error("Enter  Valid depth value.");
+  }
+
   const pageHTML = await axios.get(urlStr);
   const $ = cheerio.load(pageHTML.data);
   const urlsToVisit = [];
   $("a").map(function () {
     const href = $(this).attr("href");
-    if (href.indexOf("http") !== -1) {
+    if (utils.isValidURL(href)) {
       if (urlsToVisit.indexOf(href) === -1) {
         urlsToVisit.push($(this).attr("href"));
       }
